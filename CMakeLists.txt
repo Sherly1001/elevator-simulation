@@ -7,6 +7,7 @@ pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
 set(SRC src)
 set(CMAKE_C_FLAGS "-Wall -Wextra")
+set(CMAKE_BUILD_TYPE Debug)
 
 set(LIBS
     ${GTK3_LIBRARIES}

@@ -1,0 +1,43 @@
+#ifndef __SHARED_H__
+#define __SHARED_H__
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <gtk/gtk.h>
+
+#include "sigs.h"
+
+#define SHM_KEY 1001
+
+typedef struct {
+    double lift_pos;
+
+    pid_t mng_id;
+    pid_t ctrl_id;
+    pid_t lift_id;
+    pid_t sensor_id[6];
+    pid_t opx_id[5];
+} shared_mem;
+
+shared_mem *get_shared_mem();
+void        free_shared_mem();
+
+typedef struct {
+    shared_mem *shm;
+    int         id;
+} opx_args_t;
+
+typedef int main_func(int, char **);
+
+int op1_main(int ac, char **av);
+int opx_main(int ac, char **av);
+int mng_main(int ac, char **av);
+int ctrl_main(int ac, char **av);
+int body_main(int ac, char **av);
+
+void set_label_text(GtkWidget *label, int id, char *color);
+void set_but_img(GtkWidget *but, int id, int activate);
+int  opx_send_sig(shared_mem *shm, int id);
+
+#endif
