@@ -3,27 +3,25 @@
 #include "shared.h"
 #include "sigs.h"
 
-static GtkWidget *_buts[5];
-static int _self_clicked = 0;
+static shared_mem *shm  = NULL;
+static GtkWidget  *_lab = NULL;
+static GtkWidget  *_buts[5];
+static int         _self_clicked = 0;
 
-static void to2() {
-    if (!_self_clicked) set_but_img(_buts[1], 2, 0);
+static void tox(int sig) {
+    int floor = sig - SIG_OPE_REQ_TO_2 + 2;
+    if (!_self_clicked) set_but_img(_buts[floor - 1], floor, 0);
     _self_clicked = 0;
 }
 
-static void to3() {
-    if (!_self_clicked) set_but_img(_buts[2], 3, 0);
-    _self_clicked = 0;
+static void move_done_handle(int sig) {
+    int floor = sig - SIG_OPE_REQ_TO_2_DONE + 2;
+    set_but_img(_buts[floor - 1], floor, 1);
 }
 
-static void to4() {
-    if (!_self_clicked) set_but_img(_buts[3], 4, 0);
-    _self_clicked = 0;
-}
-
-static void to5() {
-    if (!_self_clicked) set_but_img(_buts[4], 5, 0);
-    _self_clicked = 0;
+static void update_light() {
+    int cur_floor = lift_at_floor(shm->lift_pos);
+    set_label_text(_lab, cur_floor, cur_floor == 1 ? "green" : "red");
 }
 
 static void but_clicked(GtkWidget *but, gpointer data) {
@@ -51,6 +49,7 @@ static void activate(GtkApplication *app, gpointer data) {
     gtk_label_set_attributes(GTK_LABEL(label), attr);
     set_label_text(label, 1, "green");
     gtk_grid_attach(GTK_GRID(grid), label, 0, 1, 1, 1);
+    _lab = label;
 
     for (int i = 2; i <= 5; ++i) {
         GtkWidget *but = gtk_button_new();
@@ -70,12 +69,18 @@ static void activate(GtkApplication *app, gpointer data) {
 }
 
 int op1_main(int ac, char **av) {
-    signal(SIG_OPE_REQ_TO_2, to2);
-    signal(SIG_OPE_REQ_TO_3, to3);
-    signal(SIG_OPE_REQ_TO_4, to4);
-    signal(SIG_OPE_REQ_TO_5, to5);
+    signal(SIG_OPE_REQ_TO_2, tox);
+    signal(SIG_OPE_REQ_TO_3, tox);
+    signal(SIG_OPE_REQ_TO_4, tox);
+    signal(SIG_OPE_REQ_TO_5, tox);
+    signal(SIG_OPE_REQ_TO_2_DONE, move_done_handle);
+    signal(SIG_OPE_REQ_TO_3_DONE, move_done_handle);
+    signal(SIG_OPE_REQ_TO_4_DONE, move_done_handle);
+    signal(SIG_OPE_REQ_TO_5_DONE, move_done_handle);
+    signal(SIG_OPX_UPDATE_LIGHT, update_light);
 
-    shared_mem     *shm = get_shared_mem();
+    shm = get_shared_mem();
+
     GtkApplication *app = gtk_application_new(
         "org.gtk.elevator-simulation", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(app, "activate", G_CALLBACK(activate), shm);

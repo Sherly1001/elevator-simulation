@@ -4,35 +4,130 @@
 #include "sigs.h"
 #include "shared.h"
 
+#include "vec.h"
+
 static shared_mem *shm = NULL;
+// vec<int>
+static vec_t *queue    = NULL;
+static int    waiting  = 0;
+static int    sleeping = 0;
 
-static void to2() {
-    kill(shm->opx_id[1], SIG_OPE_REQ_TO_2);
-    kill(shm->opx_id[0], SIG_OPE_REQ_TO_2);
+static void print_queue(char *color) {
+    printf("%sreq queue: ", color);
+    if (queue->len > 0) {
+        for (size_t idx = 0; idx < queue->len - 1; ++idx) {
+            printf("%d, ", vec_get_r(int, queue, idx));
+        }
+        printf("%d\e[0m\n", vec_get_r(int, queue, queue->len - 1));
+    } else {
+        printf("empty\e[0m\n");
+    }
 }
 
-static void to3() {
-    kill(shm->opx_id[2], SIG_OPE_REQ_TO_3);
-    kill(shm->opx_id[0], SIG_OPE_REQ_TO_3);
+static void tox(int sig) {
+    int floor = sig - SIG_OPE_REQ_TO_2 + 2;
+
+    kill(shm->opx_id[floor - 1], sig);
+    kill(shm->opx_id[0], sig);
+
+    size_t idx = vec_index_of_r(int, queue, floor);
+    if (idx == -1lu) {
+        vec_add_r(int, queue, floor);
+        printf("\e[32;1madded req to floor %d\e[0m\n", floor);
+    } else {
+        printf("\e[31;1mfloor %d already in the queue\e[0m\n", floor);
+    }
+
+    print_queue("\e[32;1m");
 }
 
-static void to4() {
-    kill(shm->opx_id[3], SIG_OPE_REQ_TO_4);
-    kill(shm->opx_id[0], SIG_OPE_REQ_TO_4);
+static void arrive_handle() {
+    waiting = 0;
 }
 
-static void to5() {
-    kill(shm->opx_id[4], SIG_OPE_REQ_TO_5);
-    kill(shm->opx_id[0], SIG_OPE_REQ_TO_5);
+static void wait_move_done() {
+    waiting = 1;
+    while (waiting) pause();
+}
+
+static void update_light() {
+    for (int i = 0; i < 5; ++i) {
+        if (kill(shm->opx_id[i], SIG_OPX_UPDATE_LIGHT) < 0) {
+            char tmp[20];
+            sprintf(tmp, "mng_update_light %d", i + 1);
+            perror(tmp);
+        }
+    }
+}
+
+static int move_lift_to(int floor) {
+    if (floor < 1 || floor > 5) return -1;
+    int sig = SIG_MNG_MOVE_LIFT_TO_1 + floor - 1;
+    return kill(shm->ctrl_id, sig);
+}
+
+static int move_done_in_floor(int floor) {
+    int sig = SIG_OPE_REQ_TO_2_DONE + floor - 2;
+    int res = kill(shm->opx_id[0], sig);
+    if (res < 0) return res;
+    return kill(shm->opx_id[floor - 1], sig);
+}
+
+static void wake_handle() {
+    sleeping = 0;
+}
+
+static void sleep_in(int sec) {
+    sleeping = 1;
+    alarm(sec);
+    while (sleeping) pause();
 }
 
 int mng_main(int ag, char **av) {
-    shm = get_shared_mem();
+    shm   = get_shared_mem();
+    queue = vec_new_r(int, NULL, NULL, NULL);
 
-    signal(SIG_OPE_REQ_TO_2, to2);
-    signal(SIG_OPE_REQ_TO_3, to3);
-    signal(SIG_OPE_REQ_TO_4, to4);
-    signal(SIG_OPE_REQ_TO_5, to5);
-    while (1) pause();
+    signal(SIGALRM, wake_handle);
+    signal(SIG_OPE_REQ_TO_2, tox);
+    signal(SIG_OPE_REQ_TO_3, tox);
+    signal(SIG_OPE_REQ_TO_4, tox);
+    signal(SIG_OPE_REQ_TO_5, tox);
+    signal(SIG_CTRL_MOVE_LIFT_ARRIVED, arrive_handle);
+    signal(SIG_OPX_UPDATE_LIGHT, update_light);
+
+    while (1) {
+        if (queue->len > 0) {
+            int next_floor = vec_get_r(int, queue, 0);
+
+            printf("\e[33;1mcollecting...\e[0m\n");
+            sleep_in(3);
+            printf("\e[33;1mdone\e[0m\n");
+
+            if (move_lift_to(next_floor) < 0) {
+                char tmp[20];
+                sprintf(tmp, "move_lift_to %d", next_floor);
+                perror(tmp);
+                continue;
+            }
+
+            wait_move_done();
+            printf("\e[33;1mdelivering...\e[0m\n");
+            sleep_in(3);
+            printf("\e[33;1mdone\e[0m\n");
+
+            move_done_in_floor(next_floor);
+            vec_remove(queue, 0);
+            print_queue("\e[31;1m");
+
+            if (move_lift_to(1) < 0) {
+                perror("move_lift_to");
+                continue;
+            }
+
+            wait_move_done();
+        }
+        pause();
+    }
+
     return 0;
 }

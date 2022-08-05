@@ -6,7 +6,7 @@
 #include "shared.h"
 
 int main() {
-    int pid = 0;
+    int         pid = 0;
     shared_mem *shm = get_shared_mem();
 
     int (*fp[])(int, char **) = {mng_main, ctrl_main, body_main};
@@ -51,7 +51,22 @@ int main() {
         }
     }
 
+    for (int i = 0; i <= 5; ++i) {
+        if ((pid = fork()) == 0) {
+            char id[10];
+            sprintf(id, "%d", i);
+            char *av   = {id};
+            int   resp = sensor_main(1, &av);
+            exit(resp);
+        } else if (pid) {
+            shm->sensor_id[i] = pid;
+        } else {
+            perror("fork opx");
+        }
+    }
+
     int res = 0;
-    while (wait(&res) > 0);
+    while (wait(&res) > 0)
+        ;
     free_shared_mem();
 }
