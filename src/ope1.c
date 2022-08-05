@@ -67,6 +67,7 @@ static void activate(GtkApplication *app, gpointer data) {
         _buts[i - 1] = but;
     }
 
+    gtk_window_set_wmclass(GTK_WINDOW(win), "esopx", "esopx");
     gtk_widget_show_all(win);
 }
 

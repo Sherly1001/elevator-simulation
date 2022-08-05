@@ -55,7 +55,7 @@ static void activate(GtkApplication *app, gpointer data) {
 
     g_signal_connect(but, "clicked", G_CALLBACK(but_clicked), data);
 
-    gtk_window_set_decorated(GTK_WINDOW(win), 1);
+    gtk_window_set_wmclass(GTK_WINDOW(win), "esopx", "esopx");
     gtk_widget_show_all(win);
 }
 
