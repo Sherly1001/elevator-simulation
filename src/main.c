@@ -5,9 +5,16 @@
 
 #include "shared.h"
 
+static void sigint() {
+    free_shared_mem();
+    exit(0);
+}
+
 int main() {
     int         pid = 0;
     shared_mem *shm = get_shared_mem();
+
+    signal(SIGINT, sigint);
 
     int (*fp[])(int, char **) = {mng_main, ctrl_main, body_main};
 
@@ -66,7 +73,6 @@ int main() {
     }
 
     int res = 0;
-    while (wait(&res) > 0)
-        ;
+    while (wait(&res) > 0);
     free_shared_mem();
 }
