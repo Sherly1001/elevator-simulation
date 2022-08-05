@@ -30,9 +30,7 @@ GtkWidget *but_imgs[5]      = {NULL};
 GtkWidget *but_pend_imgs[5] = {NULL};
 
 void set_but_img(GtkWidget *but, int id, int activate) {
-    printf("%p, %d, %d, ", but, id, activate);
     GtkWidget *but_img = activate ? but_imgs[id - 1] : but_pend_imgs[id - 1];
-    printf("%p, %d\n", &but_imgs, getpid());
 
     if (!but_img) {
         char file_path[50];
@@ -44,7 +42,6 @@ void set_but_img(GtkWidget *but, int id, int activate) {
     }
 
     gtk_button_set_image(GTK_BUTTON(but), but_img);
-    printf("set done, %d, %d\n", getpid(), G_OBJECT(but_img)->ref_count);
 }
 
 int opx_send_sig(shared_mem *shm, int id) {

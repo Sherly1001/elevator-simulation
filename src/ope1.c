@@ -29,7 +29,6 @@ static void to5() {
 static void but_clicked(GtkWidget *but, gpointer data) {
     opx_args_t *args = data;
     if (opx_send_sig(args->shm, args->id) == 0) {
-        printf("sub clicked %d: ", args->id);
         _self_clicked = 1;
         set_but_img(but, args->id, 0);
     } else {
@@ -55,7 +54,6 @@ static void activate(GtkApplication *app, gpointer data) {
 
     for (int i = 2; i <= 5; ++i) {
         GtkWidget *but = gtk_button_new();
-        printf("sub %d: ", i);
         set_but_img(but, i, 1);
         gtk_grid_attach(GTK_GRID(grid), but, 0, i, 1, 1);
 

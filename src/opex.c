@@ -10,7 +10,6 @@ static int        _id           = 0;
 static int        _self_clicked = 0;
 
 static void tome() {
-    printf("out %d: ", _id);
     if (!_self_clicked) set_but_img(_but, _id, 0);
     _self_clicked = 0;
 }
@@ -48,7 +47,6 @@ static void activate(GtkApplication *app, gpointer data) {
     gtk_grid_attach(GTK_GRID(grid), label, 0, 1, 1, 1);
 
     GtkWidget *but = gtk_button_new();
-    printf("out %d: ", args->id);
     set_but_img(but, args->id, 1);
     gtk_grid_attach(GTK_GRID(grid), but, 0, 2, 1, 1);
     _but = but;

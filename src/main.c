@@ -46,7 +46,6 @@ int main() {
             exit(resp);
         } else if (pid) {
             shm->opx_id[i - 1] = pid;
-            printf("main: %d: %d\n", i - 1, pid);
         } else {
             perror("fork opx");
         }
