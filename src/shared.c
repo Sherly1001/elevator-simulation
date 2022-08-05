@@ -65,3 +65,17 @@ int opx_send_sig(shared_mem *shm, int id) {
 
     return kill(shm->mng_id, sig);
 }
+
+int lift_at_floor(double lift_pos) {
+    return (int)(lift_pos / 3) + 1;
+}
+
+int lift_arrived(double lift_pos) {
+    double intval = (int)lift_pos;
+    if (intval != lift_pos) {
+        return 0;
+    }
+    double floor = (lift_pos - 1) / 3 + 1;
+    intval       = (int)floor;
+    return intval == floor && intval >= 1 && intval <= 5;
+}
