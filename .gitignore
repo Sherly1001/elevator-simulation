@@ -74,4 +74,5 @@ build
 # External projects
 *-prefix/
 
+elevator-simulation
 # End of https://www.toptal.com/developers/gitignore/api/cmake,c

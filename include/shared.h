@@ -11,6 +11,8 @@
 #define SHM_KEY 1001
 
 typedef struct {
+    int cur_req;
+    
     // bottom of elevator
     double lift_pos;
 
@@ -35,13 +37,13 @@ typedef int main_func(int, char **);
 
 int op1_main(int ac, char **av);
 int opx_main(int ac, char **av);
-int mng_main(int ac, char **av);
-int ctrl_main(int ac, char **av);
-int body_main(int ac, char **av);
+int mng_main();
+int ctrl_main();
+int body_main();
 int sensor_main(int ac, char **av);
 
-void set_label_text(GtkWidget *label, int id, char *color);
-void set_but_img(GtkWidget *but, int id, int activate);
+void set_monitor_img(GtkWidget *monitor, int id, char *color);
+void set_but_img(GtkWidget *but, int id, int status);
 int  opx_send_sig(shared_mem *shm, int id);
 int  lift_at_floor(double lift_pos);
 int  lift_arrived(double lift_pos);

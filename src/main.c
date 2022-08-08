@@ -13,6 +13,7 @@ static void sigint() {
 int main() {
     int         pid = 0;
     shared_mem *shm = get_shared_mem();
+    shm->cur_req = 0;
 
     signal(SIGINT, sigint);
 

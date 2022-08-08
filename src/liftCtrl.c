@@ -56,7 +56,7 @@ static void sen_handle() {
     }
 }
 
-int ctrl_main(int ag, char **av) {
+int ctrl_main() {
     shm = get_shared_mem();
 
     signal(SIG_MNG_MOVE_LIFT_TO_1, sig_handle);

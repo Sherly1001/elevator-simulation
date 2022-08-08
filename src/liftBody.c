@@ -23,16 +23,16 @@ static void moving_loop() {
 
     if (moving) {
         if (arrived) {
-            printf("lift at: %3.1lfm, current floor: %d\n", shm->lift_pos,
+            printf("Current position: %3.1lfm, current floor: %d\n", shm->lift_pos,
                 cur_floor);
         } else {
-            printf("lift at: %3.1lfm\n", shm->lift_pos);
+            printf("Current position: %3.1lfm\n", shm->lift_pos);
         }
     }
     alarm(1);
 }
 
-int body_main(int ag, char **av) {
+int body_main() {
     shm           = get_shared_mem();
     shm->lift_pos = 1;
 

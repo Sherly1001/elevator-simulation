@@ -20,24 +20,25 @@ void free_shared_mem() {
     shmctl(shmid, IPC_RMID, (struct shmid_ds *)0);
 }
 
-void set_label_text(GtkWidget *label, int id, char *color) {
-    char label_t[100];
-    sprintf(label_t, "<span foreground=\"%s\">%d</span>", color, id);
-    gtk_label_set_markup(GTK_LABEL(label), label_t);
+void set_monitor_img(GtkWidget *monitor, int id, char *color) {
+    char filename_t[50];
+    sprintf(filename_t, "icons/%d-%s.png", id, color);
+    gtk_image_set_from_file(GTK_IMAGE(monitor), filename_t);
 }
 
-GtkWidget *but_imgs[5]      = {NULL};
-GtkWidget *but_pend_imgs[5] = {NULL};
+GtkWidget *but_off_imgs[5]            = {NULL};
+GtkWidget *but_processing_imgs[5] = {NULL};
+GtkWidget *but_waiting_imgs[5]    = {NULL};
 
-void set_but_img(GtkWidget *but, int id, int activate) {
-    GtkWidget *but_img = activate ? but_imgs[id - 1] : but_pend_imgs[id - 1];
+void set_but_img(GtkWidget *but, int id, int status) {
+    GtkWidget *but_img = status == 1 ? but_off_imgs[id - 1] : status == 0 ? but_processing_imgs[id - 1] : but_waiting_imgs[id - 1];
 
     if (!but_img) {
         char file_path[50];
         sprintf(
-            file_path, "icons/%s-%d.png", activate ? "floor" : "pending", id);
+            file_path, "icons/%s-%d.png", status == 1 ? "off" : status == 0 ? "processing" : "waiting", id);
         but_img = gtk_image_new_from_file(file_path);
-        (activate ? but_imgs : but_pend_imgs)[id - 1] = but_img;
+        (status == 1 ? but_off_imgs : status == 0 ? but_processing_imgs : but_waiting_imgs)[id - 1] = but_img;
         g_object_ref(but_img);
     }
 
